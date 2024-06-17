@@ -13,6 +13,45 @@
   }
 }
 
+nav {
+  display: flex;
+  background-color: black;
+  box-sizing: border-box;
+  color: white;
+  height: 60px;
+  padding-left:50px;
+  padding-right: 50px;
+  margin-bottom: 50px;
+}
+nav > a {
+  color: white;
+  font-family: 'NanumGothic';
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding-top: 1%;
+  padding-left:50px;
+  padding-right: 50px;
+}
+
+.socialLogin {
+  margin-top: 30px;
+  margin-left: 33%;
+  padding-bottom: 30px;
+  width: 30%;
+  text-align: center;
+  box-sizing: content-box;
+  border: 1px solid gray;
+}
+.socialLogin, .socialLogin a{
+  color: black;
+  font-family: 'NanumGothic';
+  font-size: 1.5rem;
+  font-weight: 600;
+  padding-left: 30px;
+  padding-right: 30px;
+}
+
 .App-header {
   background-color: #282c34;
   min-height: 100vh;

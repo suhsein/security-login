@@ -1,10 +1,11 @@
 package com.example.securitylogin.config;
 
 import com.example.securitylogin.jwt.JWTUtil;
+import com.example.securitylogin.loginhandler.CustomFailureHandler;
 import com.example.securitylogin.repository.OAuth2UserRepository;
 import com.example.securitylogin.service.oauth2.CustomOAuth2UserService;
-import com.example.securitylogin.successhandler.CustomFormSuccessHandler;
-import com.example.securitylogin.successhandler.CustomOAuth2SuccessHandler;
+import com.example.securitylogin.loginhandler.CustomFormSuccessHandler;
+import com.example.securitylogin.loginhandler.CustomOAuth2SuccessHandler;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -12,10 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.CorsConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -33,6 +32,7 @@ import java.util.Collections;
 public class SecurityConfig {
     private final OAuth2UserRepository oAuth2UserRepository;
     private final JWTUtil jwtUtil;
+    private final CustomFailureHandler customFailureHandler;
 
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder(){
@@ -51,12 +51,7 @@ public class SecurityConfig {
                 .formLogin((form) -> form.loginPage("/login")
                         .loginProcessingUrl("/login")
                         .successHandler(new CustomFormSuccessHandler(jwtUtil))
-                        .failureHandler(new AuthenticationFailureHandler() {
-                            @Override
-                            public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
-                                response.setStatus(HttpStatus.BAD_REQUEST.value());
-                            }
-                        })
+                        .failureHandler(customFailureHandler)
                         .permitAll());
 
         // logout
@@ -73,6 +68,7 @@ public class SecurityConfig {
                         .userInfoEndpoint((userinfo) -> userinfo
                                 .userService(new CustomOAuth2UserService(oAuth2UserRepository)))
                         .successHandler(new CustomOAuth2SuccessHandler(jwtUtil))
+                        .failureHandler(customFailureHandler)
                         .permitAll());
 
         // cors
@@ -81,13 +77,13 @@ public class SecurityConfig {
                     @Override
                     public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
                         CorsConfiguration configuration = new CorsConfiguration();
-                        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+                        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000/"));
                         configuration.setAllowedMethods(Collections.singletonList("*"));
                         configuration.setAllowCredentials(true);
                         configuration.setAllowedHeaders(Collections.singletonList("*"));
                         configuration.setMaxAge(3600L);
 
-                        configuration.setExposedHeaders(Collections.singletonList("Authorization"));
+                        configuration.setExposedHeaders(Collections.singletonList("access"));
 
                         return configuration;
                     }

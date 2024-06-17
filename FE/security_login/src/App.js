@@ -1,51 +1,26 @@
-import logo from './logo.svg';
 import './App.css';
-import { useState } from 'react';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 
-const LoginForm = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-
-  const loginHandler = async (e) => {
-    e.preventDefault();
-    const credentials = {username, password};
-    fetchLogin(credentials);
-  }
-  
-  return (<form method='post' onSubmit={loginHandler}>
-    <p>Username : <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder='username'/></p>
-    <p>Password : <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}  placeholder='password'/></p>
-    <input type="submit" value="Login"/>
-  </form>);
-}
-
-const fetchLogin = async (credentials) => {
-  try {
-    const response = await fetch("http://localhost:8080/login", {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams(credentials),
-    }); 
-
-    if(response.ok){
-      console.log('Login successful');
-    } else {
-      console.log('Login failed');
-    }
-  } catch(error) {
-    console.log('error: ', error)
-  }
-}
-
+import JoinForm from './pages/Join';
+import LoginForm from './pages/Login';
+import Home from './pages/Home';
 
 function App() {
- 
   return (
     <div className="App">
-      <LoginForm></LoginForm>
+      <BrowserRouter>
+      <nav>
+        <Link to="/">Home</Link> 
+        <Link to="/join">Join</Link>
+        <Link to="/login">Login</Link>
+      </nav>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/join" element={<JoinForm />}/>
+        </Routes>
+      </BrowserRouter>
     </div>
   );
 }
