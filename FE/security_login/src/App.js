@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import JoinForm from './pages/Join';
 import LoginForm from './pages/Login';
 import Home from './pages/Home';
+import OAuthRedirect from './pages/OauthRedirect';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<LoginForm />} />
           <Route path="/join" element={<JoinForm />}/>
+          <Route path="/oauth-redirect" element={<OAuthRedirect/>} />
         </Routes>
       </BrowserRouter>
     </div>
