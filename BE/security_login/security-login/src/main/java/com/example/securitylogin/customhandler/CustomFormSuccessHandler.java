@@ -1,9 +1,9 @@
-package com.example.securitylogin.loginhandler;
+package com.example.securitylogin.customhandler;
 
 import com.example.securitylogin.jwt.JWTUtil;
+import com.example.securitylogin.util.CookieUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +16,8 @@ import java.util.Map;
 
 /**
  * 폼 로그인 성공 후 JWT 발급
+ * access -> 헤더
+ * refresh -> 쿠키
  */
 @RequiredArgsConstructor
 public class CustomFormSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -33,19 +35,14 @@ public class CustomFormSuccessHandler extends SimpleUrlAuthenticationSuccessHand
         String refresh = jwtUtil.createJwt("refresh", username, role, 24 * 60 * 60 * 1000L);
 
         response.setHeader("access", access);
-        response.addCookie(createCookie("refresh", refresh));
+        response.addCookie(CookieUtil.createCookie("refresh", refresh, 24 * 60 * 60));
+
+        // TODO refresh 토큰 DB 저장
 
         // json 을 ObjectMapper 로 직렬화하여 전달
         Map<String, Object> responseData = new HashMap<>();
         responseData.put("username", username);
 
         new ObjectMapper().writeValue(response.getWriter(), responseData);
-    }
-
-    private Cookie createCookie(String key, String value) {
-        Cookie cookie = new Cookie(key, value);
-        cookie.setHttpOnly(true);
-        cookie.setMaxAge(24 * 60 * 60);
-        return cookie;
     }
 }

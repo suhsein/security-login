@@ -1,0 +1,62 @@
+package com.example.securitylogin.service;
+
+import com.example.securitylogin.jwt.JWTUtil;
+import com.example.securitylogin.util.CookieUtil;
+import io.jsonwebtoken.ExpiredJwtException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
+
+@Service
+@RequiredArgsConstructor
+public class ReissueService {
+    private final JWTUtil jwtUtil;
+
+    public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
+        String refresh = null;
+        Cookie[] cookies = request.getCookies();
+
+        refresh = Arrays.stream(cookies).filter((cookie) -> cookie.getName().equals("refresh"))
+                .findFirst().get().getValue();
+
+        // 쿠키에 refresh 토큰 x
+        if (refresh == null) {
+            return new ResponseEntity<>("refresh token is null", HttpStatus.BAD_REQUEST);
+        }
+
+        // 만료된 토큰은 payload 읽을 수 없음 -> ExpiredJwtException 발생
+        try {
+            jwtUtil.isExpired(refresh);
+        } catch(ExpiredJwtException e){
+            return new ResponseEntity<>("refresh token expired", HttpStatus.BAD_REQUEST);
+        }
+
+        // refresh 토큰이 아님
+        String category = jwtUtil.getCategory(refresh);
+        if(!category.equals("refresh")) {
+            return new ResponseEntity<>("invalid refresh token", HttpStatus.BAD_REQUEST);
+        }
+
+        String username = jwtUtil.getUsername(refresh);
+        String role = jwtUtil.getRole(refresh);
+
+        // TODO refresh DB 조회 기능 구현..
+
+        Integer expiredS = 60 * 60 * 24;
+        String newAccess = jwtUtil.createJwt("access", username, role, 60 * 10 * 1000L);
+        String newRefresh = jwtUtil.createJwt("refresh", username, role, expiredS * 1000L);
+
+        // TODO 기존 refresh DB 삭제 기능 구현..
+
+        response.setHeader("access", newAccess);
+        response.addCookie(CookieUtil.createCookie("refresh", newRefresh, expiredS));
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+}

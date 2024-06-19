@@ -1,10 +1,12 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLogin } from "../contexts/AuthContext";
 
 const OAuth2Redirect = () => {
     const navigate = useNavigate();
+    const { setIsLoggedIn, setLoginUser } = useLogin();
 
     const OAuth2JwtHeaderFetch = async () => {
-        const [queryParams, setQueryParms] = useSearchParams();
+        const [queryParams] = useSearchParams();
         try {
             const response = await fetch("http://localhost:8080/oauth2-jwt-header", {
                 method: "POST",
@@ -17,6 +19,9 @@ const OAuth2Redirect = () => {
                 // local storage username set
                 const username = queryParams.get('username');
                 window.localStorage.setItem("username", username);
+
+                setIsLoggedIn(true);
+                setLoginUser(username);
             } else {
                 alert('접근할 수 없는 페이지입니다.');
             }

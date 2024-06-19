@@ -22,7 +22,7 @@ const Admin = () => {
             } else {
                 alert('관리자가 아닙니다.');
                 // useLocation 으로 얻은 path 를 useNavigate 을 사용해 state 에 set
-                navigate("/login", {state: location.pathname });
+                navigate("/login", { state: location.pathname });
             }
         } catch (error) {
             console.log('error: ', error);
@@ -30,7 +30,6 @@ const Admin = () => {
     }
 
     fetchAdmin();
-
     return data && <h2>{data}</h2>;
 }
 

@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useLogin } from '../contexts/AuthContext';
 
 const LoginForm = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const {setIsLoggedIn, setLoginUser} = useLogin();
+
     const prevUrl = location.state || "/";
 
     const [username, setUsername] = useState('');
@@ -28,6 +31,9 @@ const LoginForm = () => {
 
                 window.localStorage.setItem("access", response.headers.get("access"));
                 window.localStorage.setItem("username", username);
+                
+                setIsLoggedIn(true);
+                setLoginUser(username);
                 
                 // 로그인 완료 후, 이전 요청이 존재하면 이전 요청으로 이동
                 navigate(prevUrl, { replace: true });
@@ -65,6 +71,5 @@ const LoginForm = () => {
         </div>
     );
 };
-
 
 export default LoginForm;

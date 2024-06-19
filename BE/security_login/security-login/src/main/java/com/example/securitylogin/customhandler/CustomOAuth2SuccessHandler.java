@@ -1,8 +1,8 @@
-package com.example.securitylogin.loginhandler;
+package com.example.securitylogin.customhandler;
 
 import com.example.securitylogin.jwt.JWTUtil;
+import com.example.securitylogin.util.CookieUtil;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +14,8 @@ import java.net.URLEncoder;
 
 /**
  * OAuth2 로그인 성공 후 JWT 발급
+ * access, refresh -> httpOnly 쿠키
+ * 리다이렉트 되기 때문에 헤더로 전달 불가능
  */
 @RequiredArgsConstructor
 public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -25,13 +27,13 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
         String username = authentication.getName();
         String role = authentication.getAuthorities().iterator().next().getAuthority();
 
-        // access
         String access = jwtUtil.createJwt("access", username, role, 60 * 10 * 1000L);
-        // refresh
         String refresh = jwtUtil.createJwt("refresh", username, role, 24 * 60 * 60 * 1000L);
 
-        response.addCookie(createCookie("access", access, 60 * 10));
-        response.addCookie(createCookie("refresh", refresh, 24 * 60 * 60));
+        // TODO refresh 토큰 DB 저장
+
+        response.addCookie(CookieUtil.createCookie("access", access, 60 * 10));
+        response.addCookie(CookieUtil.createCookie("refresh", refresh, 24 * 60 * 60));
 
         // redirect query param 인코딩 후 전달
         // 이후에 JWT 를 읽어서 데이터를 가져올 수도 있지만, JWT 파싱 비용이 많이 들기 때문에
@@ -39,11 +41,5 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
         String encodedUsername = URLEncoder.encode(username, "UTF-8");
         response.sendRedirect("http://localhost:3000/oauth2-jwt-header?username=" + encodedUsername);
     }
-    private Cookie createCookie(String key, String value, Integer expiredS) {
-        Cookie cookie = new Cookie(key, value);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(expiredS);
-        return cookie;
-    }
+
 }

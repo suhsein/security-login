@@ -1,4 +1,4 @@
-package com.example.securitylogin.loginhandler;
+package com.example.securitylogin.customhandler;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,6 +10,10 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+/**
+ * 인증 실패 핸들러
+ * 폼로그인, OAuth2 공통 적용
+ */
 @Component
 public class CustomFailureHandler implements AuthenticationFailureHandler {
     @Override

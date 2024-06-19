@@ -29,7 +29,6 @@ public class JWTFilter extends OncePerRequestFilter {
 
         // access token null
         if (access == null) {
-            System.out.println("access token null");
             filterChain.doFilter(request, response);
             return;
         }
@@ -37,20 +36,17 @@ public class JWTFilter extends OncePerRequestFilter {
         try{
             jwtUtil.isExpired(access);
         } catch (ExpiredJwtException e){
-            System.out.println("access token expired");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
 
         String category = jwtUtil.getCategory(access);
 
+        // not access token
         if(!category.equals("access")){
-            System.out.println("this token is not access token");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
-
-        System.out.println("authorized by access token");
 
         String username = jwtUtil.getUsername(access);
         String role = jwtUtil.getRole(access);
