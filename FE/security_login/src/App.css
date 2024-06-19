@@ -13,6 +13,11 @@
   }
 }
 
+body {
+  font-family: 'NanumGothic';
+  font-weight: 400;
+}
+
 nav {
   display: flex;
   background-color: black;
@@ -23,9 +28,9 @@ nav {
   padding-right: 50px;
   margin-bottom: 50px;
 }
+
 nav > a {
   color: white;
-  font-family: 'NanumGothic';
   font-size: 1.5rem;
   font-weight: 600;
   text-decoration: none;
@@ -34,22 +39,48 @@ nav > a {
   padding-right: 50px;
 }
 
-.socialLogin {
-  margin-top: 30px;
-  margin-left: 33%;
-  padding-bottom: 30px;
-  width: 30%;
+.login, .join {
+  margin: 0 auto;
+  width: 500px;
   text-align: center;
-  box-sizing: content-box;
-  border: 1px solid gray;
 }
-.socialLogin, .socialLogin a{
+
+form{
+  margin-top: 50px;
+}
+
+.form-btn {
+  width: 280px;
   color: black;
-  font-family: 'NanumGothic';
+  background-color: pink;
   font-size: 1.5rem;
-  font-weight: 600;
-  padding-left: 30px;
-  padding-right: 30px;
+  cursor: pointer;
+}
+
+.label{
+  width: 200px;
+  margin-right: 20px;
+  font-weight: 500;
+}
+
+.input-class{
+  border: 0;
+  height: 2rem;
+}
+
+.social-icon {
+  width: 2.7rem;
+  height: 2.7rem;
+  margin-top: 1rem;
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
+.social-login {
+  border-top: 1px solid gray;
+  margin-top: 3rem;
+  padding-bottom: 30px;
+  text-align: center;
 }
 
 .App-header {

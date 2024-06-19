@@ -1,5 +1,6 @@
 package com.example.securitylogin.config;
 
+import com.example.securitylogin.jwt.JWTFilter;
 import com.example.securitylogin.jwt.JWTUtil;
 import com.example.securitylogin.loginhandler.CustomFailureHandler;
 import com.example.securitylogin.repository.OAuth2UserRepository;
@@ -13,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -20,6 +23,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -35,7 +40,7 @@ public class SecurityConfig {
     private final CustomFailureHandler customFailureHandler;
 
     @Bean
-    public BCryptPasswordEncoder bCryptPasswordEncoder(){
+    public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
@@ -57,7 +62,6 @@ public class SecurityConfig {
         // logout
         http
                 .logout((auth) -> auth
-                        .logoutUrl("/logout")
                         .logoutSuccessUrl("/")
                         .permitAll());
 
@@ -94,6 +98,18 @@ public class SecurityConfig {
                 .requestMatchers("/", "/login", "/join", "/logout", "/oauth2-jwt-header").permitAll()
                 .requestMatchers("/admin").hasRole("ADMIN")
                 .anyRequest().authenticated());
+
+        // 인가되지 않은 사용자에 대한 exception -> 프론트엔드로 코드 응답
+        http.exceptionHandling((exception) ->
+                exception
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            System.out.println("authenticationEntryPoint");
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        }));
+
+        // jwt filter
+        http
+                .addFilterAfter(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
         // session stateless
         http

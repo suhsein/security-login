@@ -1,8 +1,43 @@
 import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const LoginForm = () => {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const prevUrl = location.state || "/";
+
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+
+    const fetchLogin = async (credentials) => {
+        try {
+            const response = await fetch("http://localhost:8080/login", {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams(credentials),
+            });
+
+            if (response.ok) {
+                alert('Login successful');
+
+                const data = await response.json();
+                const { username } = data;
+
+                window.localStorage.setItem("access", response.headers.get("access"));
+                window.localStorage.setItem("username", username);
+                
+                // 로그인 완료 후, 이전 요청이 존재하면 이전 요청으로 이동
+                navigate(prevUrl, { replace: true });
+            } else {
+                alert('Login failed');
+            }
+        } catch (error) {
+            console.log('error: ', error)
+        }
+    };
 
     const loginHandler = async (e) => {
         e.preventDefault();
@@ -11,54 +46,25 @@ const LoginForm = () => {
     }
 
     return (
-        <div>
+        <div className='login'>
             <h1>Login</h1>
             <form method='post' onSubmit={loginHandler}>
-                <p>Username : <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder='username' /></p>
-                <p>Password : <input type="password" autoComplete='off' value={password} onChange={(e) => setPassword(e.target.value)} placeholder='password' /></p>
-                <input type="submit" value="Login" />
+                <p><span className='label'>Username</span><input className='input-class' type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder='username' /></p>
+                <p><span className='label'>Password</span><input className='input-class' type="password" autoComplete='off' value={password} onChange={(e) => setPassword(e.target.value)} placeholder='password' /></p>
+                <input type="submit" value="Login" className='form-btn' />
             </form>
 
-            <div className='socialLogin'>
-                <h3>소셜 로그인</h3>
+            <div className='social-login'>
+                <h2>소셜 로그인</h2>
                 <div>
-                    <a href="http://localhost:8080/oauth2/authorization/naver">Naver</a>
-                    <a href="http://localhost:8080/oauth2/authorization/google">Google</a>
-                    <a href="http://localhost:8080/oauth2/authorization/github">Github</a>
+                    <a href="http://localhost:8080/oauth2/authorization/naver"><img className='social-icon' src="naver_icon.png" alt="naver" /></a>
+                    <a href="http://localhost:8080/oauth2/authorization/google"><img className='social-icon' src="google_icon.png" alt="google" /></a>
+                    <a href="http://localhost:8080/oauth2/authorization/github"><img className='social-icon' src="github_icon.png" alt="github" /></a>
                 </div>
             </div>
         </div>
     );
 };
 
-const fetchLogin = async (credentials) => {
-    try {
-        const response = await fetch("http://localhost:8080/login", {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams(credentials),
-        });
-
-
-        if (response.ok) {
-            alert('Login successful');
-
-            const data = await response.json();
-            const { username } = data;
-
-            window.localStorage.setItem("access", response.headers.get("access"));
-            window.localStorage.setItem("username", username);
-
-            window.location.href = "/";
-        } else {
-            alert('Login failed');
-        }
-    } catch (error) {
-        console.log('error: ', error)
-    }
-};
 
 export default LoginForm;
