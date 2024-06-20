@@ -16,12 +16,12 @@ const OAuth2Redirect = () => {
             if (response.ok) {
                 // local storage access token set
                 window.localStorage.setItem("access", response.headers.get("access"));
-                // local storage username set
-                const username = queryParams.get('username');
-                window.localStorage.setItem("username", username);
+                // local storage name set
+                const name = queryParams.get('name');
+                window.localStorage.setItem("name", name);
 
                 setIsLoggedIn(true);
-                setLoginUser(username);
+                setLoginUser(name);
             } else {
                 alert('접근할 수 없는 페이지입니다.');
             }

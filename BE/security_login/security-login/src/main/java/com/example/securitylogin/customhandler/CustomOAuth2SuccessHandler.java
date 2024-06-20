@@ -1,6 +1,8 @@
 package com.example.securitylogin.customhandler;
 
+import com.example.securitylogin.dto.oauth2.CustomOAuth2User;
 import com.example.securitylogin.jwt.JWTUtil;
+import com.example.securitylogin.service.RefreshTokenService;
 import com.example.securitylogin.util.CookieUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,26 +22,32 @@ import java.net.URLEncoder;
 @RequiredArgsConstructor
 public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     private final JWTUtil jwtUtil;
+    private final RefreshTokenService refreshTokenService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         // create JWT
-        String username = authentication.getName();
+        CustomOAuth2User customOAuth2User = (CustomOAuth2User) authentication;
+
+        String name = customOAuth2User.getName(); // 실제 이름
+        String username = customOAuth2User.getUsername(); // DB 저장용 식별자
         String role = authentication.getAuthorities().iterator().next().getAuthority();
 
+        Integer expireS = 24 * 60 * 60;
         String access = jwtUtil.createJwt("access", username, role, 60 * 10 * 1000L);
-        String refresh = jwtUtil.createJwt("refresh", username, role, 24 * 60 * 60 * 1000L);
+        String refresh = jwtUtil.createJwt("refresh", username, role, expireS * 1000L);
 
-        // TODO refresh 토큰 DB 저장
+        // refresh 토큰 DB 저장
+        refreshTokenService.saveRefresh(username, expireS, refresh);
 
         response.addCookie(CookieUtil.createCookie("access", access, 60 * 10));
-        response.addCookie(CookieUtil.createCookie("refresh", refresh, 24 * 60 * 60));
+        response.addCookie(CookieUtil.createCookie("refresh", refresh, expireS));
 
         // redirect query param 인코딩 후 전달
         // 이후에 JWT 를 읽어서 데이터를 가져올 수도 있지만, JWT 파싱 비용이 많이 들기 때문에
         // 처음 JWT 발급할 때 이름을 함께 넘긴 후, 로컬 스토리지에 저장한다.
-        String encodedUsername = URLEncoder.encode(username, "UTF-8");
-        response.sendRedirect("http://localhost:3000/oauth2-jwt-header?username=" + encodedUsername);
+        String encodedName = URLEncoder.encode(name, "UTF-8");
+        response.sendRedirect("http://localhost:3000/oauth2-jwt-header?username=" + encodedName);
     }
 
 }

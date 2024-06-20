@@ -6,7 +6,7 @@ const AuthContext = createContext();
 const AuthProvider = ({ children }) => {
     // 기본적으로 로컬 스토리지의 access 값을 기준으로 setting
     const [isLoggedIn, setIsLoggedIn] = useState(!!window.localStorage.getItem('access'));
-    const [loginUser, setLoginUser] = useState(window.localStorage.getItem('username'));
+    const [loginUser, setLoginUser] = useState(window.localStorage.getItem('name'));
 
     return (
         <AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn, loginUser, setLoginUser }}>

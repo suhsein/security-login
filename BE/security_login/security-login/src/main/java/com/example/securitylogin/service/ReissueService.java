@@ -1,6 +1,7 @@
 package com.example.securitylogin.service;
 
 import com.example.securitylogin.jwt.JWTUtil;
+import com.example.securitylogin.repository.RefreshRepository;
 import com.example.securitylogin.util.CookieUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
@@ -17,6 +18,8 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class ReissueService {
     private final JWTUtil jwtUtil;
+    private final RefreshRepository refreshRepository;
+    private final RefreshTokenService refreshTokenService;
 
     public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
         String refresh = null;
@@ -46,13 +49,22 @@ public class ReissueService {
         String username = jwtUtil.getUsername(refresh);
         String role = jwtUtil.getRole(refresh);
 
-        // TODO refresh DB 조회 기능 구현..
+        // refresh DB 조회
+        Boolean isExist = refreshRepository.existsByRefresh(refresh);
 
-        Integer expiredS = 60 * 60 * 24;
+        // DB 에 없는 리프레시 토큰 (혹은 블랙리스트 처리된 리프레시 토큰)
+        if(!isExist) {
+            return new ResponseEntity<>("invalid refresh token", HttpStatus.BAD_REQUEST);
+        }
+
+        // new tokens
         String newAccess = jwtUtil.createJwt("access", username, role, 60 * 10 * 1000L);
+        Integer expiredS = 60 * 60 * 24;
         String newRefresh = jwtUtil.createJwt("refresh", username, role, expiredS * 1000L);
 
-        // TODO 기존 refresh DB 삭제 기능 구현..
+        // 기존 refresh DB 삭제, 새로운 refresh 저장
+        refreshRepository.deleteByRefresh(refresh);
+        refreshTokenService.saveRefresh(username, expiredS, newRefresh);
 
         response.setHeader("access", newAccess);
         response.addCookie(CookieUtil.createCookie("refresh", newRefresh, expiredS));

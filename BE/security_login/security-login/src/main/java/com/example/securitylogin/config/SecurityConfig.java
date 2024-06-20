@@ -1,39 +1,58 @@
 package com.example.securitylogin.config;
 
+import com.example.securitylogin.customhandler.CustomLogoutFilter;
 import com.example.securitylogin.jwt.JWTFilter;
 import com.example.securitylogin.jwt.JWTUtil;
-import com.example.securitylogin.customhandler.CustomFailureHandler;
-import com.example.securitylogin.repository.OAuth2UserRepository;
+import com.example.securitylogin.repository.RefreshRepository;
+import com.example.securitylogin.service.RefreshTokenService;
 import com.example.securitylogin.service.oauth2.CustomOAuth2UserService;
 import com.example.securitylogin.customhandler.CustomFormSuccessHandler;
 import com.example.securitylogin.customhandler.CustomOAuth2SuccessHandler;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
+import java.io.IOException;
 import java.util.Collections;
 
 @EnableWebSecurity
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final OAuth2UserRepository oAuth2UserRepository;
     private final JWTUtil jwtUtil;
-    private final CustomFailureHandler customFailureHandler;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final RefreshTokenService refreshTokenService;
+    private final RefreshRepository refreshRepository;
 
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationFailureHandler authenticationFailureHandler(){
+        return new AuthenticationFailureHandler() {
+            @Override
+            public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
+                System.out.println("exception = " + exception);
+                response.setStatus(HttpStatus.BAD_REQUEST.value());
+            }
+        };
     }
 
     @Bean
@@ -47,14 +66,8 @@ public class SecurityConfig {
         http
                 .formLogin((form) -> form.loginPage("/login")
                         .loginProcessingUrl("/login")
-                        .successHandler(new CustomFormSuccessHandler(jwtUtil))
-                        .failureHandler(customFailureHandler)
-                        .permitAll());
-
-        // logout
-        http
-                .logout((auth) -> auth
-                        .logoutSuccessUrl("/")
+                        .successHandler(new CustomFormSuccessHandler(jwtUtil, refreshTokenService))
+                        .failureHandler(authenticationFailureHandler())
                         .permitAll());
 
         // oauth2
@@ -62,9 +75,15 @@ public class SecurityConfig {
                 .oauth2Login((oauth2) -> oauth2
                         .loginPage("/login")
                         .userInfoEndpoint((userinfo) -> userinfo
-                                .userService(new CustomOAuth2UserService(oAuth2UserRepository)))
-                        .successHandler(new CustomOAuth2SuccessHandler(jwtUtil))
-                        .failureHandler(customFailureHandler)
+                                .userService(customOAuth2UserService))
+                        .successHandler(new CustomOAuth2SuccessHandler(jwtUtil, refreshTokenService))
+                        .failureHandler(authenticationFailureHandler())
+                        .permitAll());
+
+        // logout
+        http
+                .logout((auth) -> auth
+                        .logoutSuccessUrl("/")
                         .permitAll());
 
         // cors
@@ -102,7 +121,9 @@ public class SecurityConfig {
         http
                 .addFilterAfter(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
-        // TODO 커스텀 로그아웃 필터 혹은 핸들러 구현 & 등록
+        // custom logout filter 등록
+        http
+                .addFilterBefore(new CustomLogoutFilter(jwtUtil, refreshRepository), LogoutFilter.class);
 
         // session stateless
         http

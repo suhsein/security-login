@@ -27,13 +27,13 @@ const LoginForm = () => {
                 alert('Login successful');
 
                 const data = await response.json();
-                const { username } = data;
+                const { name } = data;
 
                 window.localStorage.setItem("access", response.headers.get("access"));
-                window.localStorage.setItem("username", username);
+                window.localStorage.setItem("name", name);
                 
                 setIsLoggedIn(true);
-                setLoginUser(username);
+                setLoginUser(name);
                 
                 // 로그인 완료 후, 이전 요청이 존재하면 이전 요청으로 이동
                 navigate(prevUrl, { replace: true });
