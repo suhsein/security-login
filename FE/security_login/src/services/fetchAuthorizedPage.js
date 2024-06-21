@@ -16,7 +16,7 @@ const fetchAuthorizedPage = async (url, navigate, location) => {
         } else {
             // unauthorized code -> 1. 재발급 요청  2. 재발급 요청 성공 or 실패 핸들링
             // 재발급 성공 시 다시 권한 페이지 fetch, 재발급 실패 시 로그인 페이지로
-            const reissueSuccess = fetchReissue();
+            const reissueSuccess = await fetchReissue();
             if (reissueSuccess) {
                 fetchAuthorizedPage(url, navigate, location);
             } else {

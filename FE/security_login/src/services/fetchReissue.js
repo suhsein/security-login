@@ -13,17 +13,13 @@ const fetchReissue = async () => {
             window.localStorage.setItem('access', response.headers.get("access"));
             return true;
         } else { // 토큰 재발급 실패
-            alert("토큰이 만료되어 로그아웃 되었습니다.");
-            const result = await response.text();
-            console.log(result);
-            window.localStorage.setItem('access', null);
+            window.localStorage.removeItem("access");
             const cookies = new Cookies();
             cookies.set("refresh", null, { maxAge: 0 });
         }
     } catch (error) {
         console.log("error: ", error);
     }
-
     return false;
 }
 
