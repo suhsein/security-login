@@ -1,7 +1,11 @@
 # Security Login
-Spring Security와 JWT, OAuth2를 활용하여 개발한 통합 로그인 환경입니다.
+_Spring Security와 JWT, OAuth2를 활용하여 개발한 통합 로그인 환경입니다._
+
 스프링 시큐리티의 동작 과정을 이해하고, 필터와 핸들러를 커스텀하여 폼 로그인 환경과 소셜 로그인 환경을 통합한 통합 로그인 환경을 구축했습니다.
-스프링 시큐리티의 동작 과정에 대한 정리본은 https://velog.io/@suhsein/series/Spring-Security 에서 확인할 수 있습니다.
+
+> 스프링 시큐리티의 동작 과정에 대한 정리본은 https://velog.io/@suhsein/series/Spring-Security 에서 확인할 수 있습니다.
+
+> 이 프로젝트의 시연 동영상은 https://youtu.be/ow-R_BTQjrA 에서 확인하실 수 있습니다. 
 
 ![securityfilterchain](https://github.com/suhsein/security-login/assets/76998096/472f93c7-782c-44dd-85a8-83e47c1d64a3)
 
@@ -25,6 +29,10 @@ JWT 방식을 사용하기 위해 CSR 방식으로 프론트엔드를 구현했�
 
 또한 access, refresh 토큰을 이중으로 사용하며 `refresh rotate`을 적용하여 액세스 토큰 재발급 요청마다 리프레시 토큰도 재발급할 수 있도록 구현했습니다.
 
+### 주의사항
+JWT 사용 시 보안상 위험한 정보를 담지 않는 것이 중요합니다.
+페이로드와 헤더의 정보들은 암호화되지 않고 그대로 노출되기 때문에 인가에 꼭 필요한 메타데이터만을 담고, 서명은 서버에서 비밀키를 생성하여 서명하도록 했습니다.
+
 ### 토큰의 저장소
 `local storage`는 XSS 공격에는 취약하지만 쿠키처럼 자동 전송되지 않기 때문에 CSRF 공격에는 상대적으로 안전합니다.
 `쿠키`는 httpOnly를 적용하여 XSS 공격을 방지할 수 있지만 자동 전송 되기 때문에 CSRF 공격에는 취약합니다.
@@ -32,7 +40,6 @@ JWT 방식을 사용하기 위해 CSR 방식으로 프론트엔드를 구현했�
 `access 토큰`의 경우 CRUD에 사용되기 때문에 **CSRF 공격에 민감**하게 대응할 필요성이 있습니다. 그렇기 때문에 access 토큰은 **local storage에 저장**했습니다. 물론 XSS 공격을 방지하기 위한 추가적인 설정이 필요합니다.
 
 `refresh 토큰`의 경우 오직 access 토큰의 재발급만을 위해서 사용되기 때문에 CSRF 공격에 상대적으로 민감하지 않습니다. 그렇기 때문에 refresh 토큰은 **httpOnly를 적용한 쿠키**에 저장합니다.
-
 
 ## OAuth2 방식
 OAuth2는 알려진 외부 사이트의 사용자 계정을 통해 인증을 위임하기 위해 사용합니다. 우리 측 서버에서는 외부 서비스로 인증을 요청하고, 외부 서비스의 인증 서버는 인증을 한 후 인증코드를 응답합니다. 인증코드를 사용하여 인증 서버로 요청하면 토큰을 응답받게 됩니다. 토큰을 사용하여 리소스 서버로 요청하면 사용자 정보를 응답받을 수 있습니다.
@@ -44,15 +51,50 @@ OAuth2를 사용하는 가장 큰 이유는 **사용자가 신뢰할 수 있는 
 다만 OAuth2를 사용할 때 외부 서비스의 서버에 문제가 발생할 경우 인증이 불가능하다는 한계점 또한 존재하기 때문에, 폼 로그인과 OAuth2를 함께 사용하는 방식으로 구현했습니다.
 
 ## 기술스택
-SpringBoot SpringSecurity MySQL OAuth2 SpringDataJPA React
+
+<h3 align="center"> 인증 </h3>
+
+<div align="center">
+  <img alt="OAuth2" src="https://img.shields.io/badge/OAuth2-000000?style=for-the-badge&logoColor=white">&nbsp
+  <img alt="JWT" src="https://img.shields.io/badge/JWT-000000?style=for-the-badge&logoColor=white">&nbsp
+</div>
+
+<h3 align="center"> Back-end </h3>
+
+<div align="center">
+  <img alt="Java" src="https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=Java&logoColor=white">&nbsp
+  <img alt="MySQL" src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=MySQL&logoColor=black">&nbsp
+  <img alt="SpringDataJPA" src="https://img.shields.io/badge/Spring Data JPA-6DB33F?style=for-the-badge&logo=Spring&logoColor=white">&nbsp<br>
+  <img alt="Spring" src="https://img.shields.io/badge/Spring-6DB33F?style=for-the-badge&logo=Spring&logoColor=white">&nbsp
+  <img alt="SpringBoot" src="https://img.shields.io/badge/Spring Boot-6DB33F?style=for-the-badge&logo=Spring Boot&logoColor=white">&nbsp
+  <img alt="SpringSecurity" src="https://img.shields.io/badge/Spring Security-6DB33F?style=for-the-badge&logo=Spring Security&logoColor=white">&nbsp
+</div>
+
+<h3 align="center"> Front-end (CSR) </h3>
+
+<div align="center">
+  <img alt="React"src="https://img.shields.io/badge/React-61DAFB.svg?style=for-the-badge&logo=React&logoColor=20232a" />&nbsp
+  <img alt="Javascript"src="https://img.shields.io/badge/Javascript-F7DF1E.svg?style=for-the-badge&logo=Javascript&logoColor=20232a" />&nbsp
+  <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=HTML5&logoColor=white"/>&nbsp
+  <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=CSS3&logoColor=white"/>&nbsp
+</div>
+
+<h3 align="center"> Tools </h3>
+
+<div align="center">
+  <img src="https://img.shields.io/badge/IntelliJ IDEA-000000.svg?style=for-the-badge&logo=intellijidea&logoColor=white" />&nbsp
+  <img src="https://img.shields.io/badge/VSCode-2C2C32.svg?style=for-the-badge&logo=visual-studio-code&logoColor=22ABF3" />&nbsp
+</div>
+
 
 # Back-end
 
 ## Configuration
 시큐리티 관련 설정들을 위한 configuration을 구현했습니다. 커스텀 필터와 핸들러를 등록하고, 프론트엔드와의 리소스 공유를 위한 CORS 설정을 했습니다.
 또한 특정 url들에 대한 인가처리를 하여 인가되지 않은 사용자와 인가된 사용자가 접근할 수 있는 페이지를 구분하였습니다.
+현재 세션 방식이 아닌 JWT 방식의 인증을 사용하기 때문에 csrf과 session 사용과 관련한 설정을 disable 했습니다.
 
-인증에 실패하는 경우 프론트엔드로 인가되지 않은 사용자임을 알리기 위해 401 코드를 응답하도록 실패 핸들러를 구현했습니다.
+또한 인증에 실패하는 경우 프론트엔드로 인가되지 않은 사용자임을 알리기 위해 401 코드를 응답하도록 실패 핸들러를 구현하여 빈으로 등록했습니다.
 
 ## 폼 로그인
 폼 로그인을 사용하여 사용자가 해당 애플리케이션에 직접 가입하고, 로그인할 수 있도록 구현했습니다.
@@ -93,7 +135,7 @@ access 토큰은 만료되었고, 쿠키에 refresh 토큰은 존재할 때 백�
 폼로그인과 OAuth2의 통합 로그인 화면을 렌더링해서 보여줍니다.
 **폼로그인의 경우 fetch API**를 사용하여 백엔드에 요청을 하지만, OAuth2 로그인의 경우 fetch로 외부 서비스에 요청하는 경우 CORS 에러가 발생합니다. 그 이유는 **외부 서비스에서 CORS를 허용하지 않기 때문**입니다.
 
-그렇기 때문에** OAuth2 로그인은 링크를 통해 요청하고** 백엔드에서 리다이렉트 하도록 했습니다. `리다이렉트는 헤더와 바디에 데이터를 담아서 전달할 수 없기 때문에 자동 전송되는 쿠키를 사용하여 토큰을 전달`합니다.
+그렇기 때문에 **OAuth2 로그인은 링크를 통해 요청하고** 백엔드에서 리다이렉트 하도록 했습니다. `리다이렉트는 헤더와 바디에 데이터를 담아서 전달할 수 없기 때문에 자동 전송되는 쿠키를 사용하여 토큰을 전달`합니다.
 
 쿠키는 앞서 설명했듯 CSRF 공격의 위험성이 존재하기 때문에 액세스 토큰을 계속 담아둘 수 없습니다. `httpOnly 쿠키는 자바스크립트에서 접근이 불가능 하기 때문에 바로 로컬스토리지에 넣을 수 없습니다.` 그렇기 때문에 프론트엔드에서 다시 백엔드로 요청하여 백엔드는 httpOnly 쿠키의 값을 헤더에 넣어 전송하고, 프론트엔드는 응답받은 헤더의 액세스 토큰을 로컬 스토리지에 저장합니다.
 
